@@ -71,13 +71,16 @@ class MotorControl:
             raw_z = 0 if abs(raw_z) < self.deadzone else raw_z
 
             # Apply acceleration
-            self.x_speed = self.apply_acceleration(raw_x * self.x_sensitivity, self.x_speed, self.max_speed, self.accel_rate)
-            self.y_speed = self.apply_acceleration(raw_y * self.y_sensitivity, self.y_speed, self.max_speed, self.accel_rate)
-            self.z_speed = self.apply_acceleration(raw_z * self.z_sensitivity, self.z_speed, self.max_speed, self.accel_rate)
+            self.x_speed = int(self.apply_acceleration(raw_x * self.x_sensitivity, self.x_speed, self.max_speed, self.accel_rate))
+            self.y_speed = int(self.apply_acceleration(raw_y * self.y_sensitivity, self.y_speed, self.max_speed, self.accel_rate))
+            self.z_speed = int(self.apply_acceleration(raw_z * self.z_sensitivity, self.z_speed, self.max_speed, self.accel_rate))
 
             # Scale and send to serial or print
             command = f"{self.x_speed},{self.y_speed},{self.z_speed}\n"
             if self.use_serial and self.ser:
                 self.ser.write(command.encode('utf-8'))
+
+                print(f"Sent command: {command.strip()}")
+                print(f"Received response: {self.ser.readline().decode('utf-8').strip()}")
             print(f"X: {self.x_speed}, Y: {self.y_speed}, Z: {self.z_speed}")
             await asyncio.sleep(0.002)

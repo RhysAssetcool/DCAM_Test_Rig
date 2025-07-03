@@ -2,27 +2,38 @@
 #include <AccelStepper.h>
 
 // Motor setup: DRIVER mode, STEP and DIR pins
-AccelStepper stepperZ(AccelStepper::DRIVER, 4, 3);  // Z-axis (zoom)
-AccelStepper stepperY(AccelStepper::DRIVER, 7, 6);  // Y-axis (tilt)
-AccelStepper stepperX(AccelStepper::DRIVER, 10, 9);  // X-axis (pan)
+#define X_STEP_PIN 10
+#define X_DIR_PIN 9
+#define Y_STEP_PIN 7
+#define Y_DIR_PIN 6
+#define Z_STEP_PIN 4
+#define Z_DIR_PIN 3
+
+AccelStepper stepperX(AccelStepper::DRIVER, X_STEP_PIN, X_DIR_PIN);
+AccelStepper stepperY(AccelStepper::DRIVER, Y_STEP_PIN, Y_DIR_PIN);
+AccelStepper stepperZ(AccelStepper::DRIVER, Z_STEP_PIN, Z_DIR_PIN);
 
 void setup() {
   Serial.begin(115200);
 
   // Configure X-axis motor
   stepperX.setEnablePin(2);  // Enable pin for X-axis
-  stepperX.setMaxSpeed(1000);     // Max steps/sec
+  stepperX.setMaxSpeed(6000);     // Max steps/sec
   stepperX.setAcceleration(300);  // Smoother movement
 
   // Configure Y-axis motor
   stepperY.setEnablePin(5);  // Enable pin for Y-axis
-  stepperY.setMaxSpeed(800);      // Less speed if lower microstepping
+  stepperY.setMaxSpeed(6000);      // Less speed if lower microstepping
   stepperY.setAcceleration(250);
 
   // Configure Z-axis motor
   stepperZ.setEnablePin(8);  // Enable pin for Z-axis
-  stepperZ.setMaxSpeed(600);
+  stepperZ.setMaxSpeed(6000);
   stepperZ.setAcceleration(200);
+
+  stepperX.setPinsInverted(false, false, true);
+  stepperY.setPinsInverted(false, false, true);
+  stepperZ.setPinsInverted(false, false, true);
 
   // Enable all motors
   stepperX.enableOutputs();
@@ -45,12 +56,21 @@ void loop() {
       stepperX.setSpeed(xSpeed);
       stepperY.setSpeed(ySpeed);
       stepperZ.setSpeed(zSpeed);
+      // Debug output to Serial Monitor
+      Serial.print("X Speed: ");
+      Serial.print(xSpeed);
+      Serial.print(", Y Speed: ");
+      Serial.print(ySpeed);
+      Serial.print(", Z Speed: ");
+      Serial.println(zSpeed);
     }
   }
 
   stepperX.runSpeed();
   stepperY.runSpeed();
   stepperZ.runSpeed();
+
+
 }
 // #include <Arduino.h>
 // #include <AccelStepper.h>

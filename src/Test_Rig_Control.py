@@ -19,7 +19,11 @@ async def main():
     
     shared_data = SharedData()
     controller = ControllerInput()
-    motor_control = MotorControl(use_serial=False)  # Set to True if you want to use serial communication
+    motor_control = MotorControl()  # Set to True if you want to use serial communication
+    motor_control.set_sensitivity(x_sensitivity=1, y_sensitivity=0.5, z_sensitivity=0.3)
+    motor_control.set_deadzone(deadzone=0.1)
+    motor_control.set_acceleration(accel_rate=100, max_speed=5000)
+    motor_control.invert_control(invert_x=True, invert_y=True, invert_z=False)
 
     # Start the motor control handler as a background task
     motor_task = asyncio.create_task(motor_control.handle(shared_data))
@@ -35,7 +39,7 @@ async def main():
                 # Update shared data based on joystick input
                 shared_data.x_axe = axes[0] if len(axes) > 0 else 0
                 shared_data.y_axe = axes[1] if len(axes) > 1 else 0
-                shared_data.z_axe = axes[2] if len(axes) > 2 else 0
+                shared_data.z_axe = axes[3] if len(axes) > 3 else 0
                 shared_data.fire = buttons[0] if len(buttons) > 0 else 0
 
                 # print(f"Axes: {shared_data.x_axe}, {shared_data.y_axe}, {shared_data.z_axe}")
