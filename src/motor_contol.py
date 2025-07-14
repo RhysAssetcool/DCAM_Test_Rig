@@ -1,9 +1,14 @@
 import serial
-from utils import SharedData
+from src.utils import SharedData
 import asyncio
 
 class MotorControl:
-    def __init__(self, port='/dev/ttyACM0', baudrate=115200, timeout=1, use_serial=True):
+    def __init__(self, 
+                 port='/dev/ttyACM0', 
+                 baudrate=115200, 
+                 timeout=1, 
+                 use_serial=True):
+        
         self.use_serial = use_serial
         if self.use_serial:
             self.ser = serial.Serial(port, baudrate, timeout=timeout)
@@ -57,6 +62,7 @@ class MotorControl:
 
     async def handle(self, shared_data: SharedData):
         while True:
+
             # Read shared data
             raw_x = shared_data.x_axe
             raw_y = shared_data.y_axe
@@ -82,5 +88,10 @@ class MotorControl:
 
                 print(f"Sent command: {command.strip()}")
                 print(f"Received response: {self.ser.readline().decode('utf-8').strip()}")
-            print(f"X: {self.x_speed}, Y: {self.y_speed}, Z: {self.z_speed}")
+            #print(f"X: {self.x_speed}, Y: {self.y_speed}, Z: {self.z_speed}")
             await asyncio.sleep(0.002)
+
+    def close(self):
+        if self.use_serial and self.ser.is_open and self.ser:
+            self.ser.close()
+    

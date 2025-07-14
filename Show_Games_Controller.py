@@ -21,6 +21,8 @@ else:
             # Process Pygame events
             pygame.event.pump()
 
+
+
             # Get axis values
             axes = [joystick.get_axis(i) for i in range(joystick.get_numaxes())]
             print(f"Axes: {axes}")
