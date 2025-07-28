@@ -20,24 +20,23 @@ import time
 import os
 import can 
 
-# ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
+ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
 ser_motor_port = '/dev/ttyACM1'  # Adjust this to your motor control serial port
 use_serial = False  # Set to True if you want to use serial communication
-can1 = can.interface.Bus(channel='can1', bustype='socketcan')  # socketcan_native
 
 async def main():
     
     shared_data = SharedData()
     controller = ControllerInput()
-    motor_control = MotorControl(port=ser_motor_port, use_serial=use_serial)  # Set to True if you want to use serial communication
+    motor_control = MotorControl(port=ser_motor_port, use_serial=True)  # Set to True if you want to use serial communication
     motor_control.set_sensitivity(x_sensitivity=1, y_sensitivity=0.5, z_sensitivity=0.3)
     motor_control.set_deadzone(deadzone=0.1)
     motor_control.set_acceleration(accel_rate=100, max_speed=5000)
     motor_control.invert_control(invert_x=True, invert_y=True, invert_z=False)
 
-    # dcam_controller = DCAMController(port=ser_dcam_port, use_serial=use_serial)  # Set to True if you want to use serial communication
-    # dcam_controller.set_position_range(min_position=0, max_position=100)  # Set your desired range
-    # dcam_controller.set_dcam_open_state(False)  # Initialize the camera state
+    dcam_controller = DCAMController(port=ser_dcam_port, use_serial=use_serial)  # Set to True if you want to use serial communication
+    dcam_controller.set_position_range(min_position=0, max_position=100)  # Set your desired range
+    dcam_controller.set_dcam_open_state(False)  # Initialize the camera state
 
     # Start the motor control handler as a background task
     motor_task = asyncio.create_task(motor_control.handle(shared_data))
