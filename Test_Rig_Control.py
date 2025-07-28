@@ -16,11 +16,14 @@ from src.input import ControllerInput
 from src.utils import SharedData
 from src.motor_contol import MotorControl
 from src.dcam import DCAMController
-import time 
+import time
+import os
+import can 
 
-ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
+# ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
 ser_motor_port = '/dev/ttyACM1'  # Adjust this to your motor control serial port
 use_serial = False  # Set to True if you want to use serial communication
+can1 = can.interface.Bus(channel='can1', bustype='socketcan')  # socketcan_native
 
 async def main():
     
@@ -32,13 +35,13 @@ async def main():
     motor_control.set_acceleration(accel_rate=100, max_speed=5000)
     motor_control.invert_control(invert_x=True, invert_y=True, invert_z=False)
 
-    dcam_controller = DCAMController(port=ser_dcam_port, use_serial=use_serial)  # Set to True if you want to use serial communication
-    dcam_controller.set_position_range(min_position=0, max_position=100)  # Set your desired range
-    dcam_controller.set_dcam_open_state(False)  # Initialize the camera state
+    # dcam_controller = DCAMController(port=ser_dcam_port, use_serial=use_serial)  # Set to True if you want to use serial communication
+    # dcam_controller.set_position_range(min_position=0, max_position=100)  # Set your desired range
+    # dcam_controller.set_dcam_open_state(False)  # Initialize the camera state
 
     # Start the motor control handler as a background task
     motor_task = asyncio.create_task(motor_control.handle(shared_data))
-    dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
+    # dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
 
     prev_dcam_button = 0
     last_dcam_toggle = 0
@@ -66,7 +69,6 @@ async def main():
           
     
                 prev_dcam_button = current_dcam_button
-                print(shared_data.dcam_open_toggle)
             await asyncio.sleep(0.05)
 
     except KeyboardInterrupt:
@@ -75,9 +77,9 @@ async def main():
     finally:
         controller.close()
         motor_task.cancel()
-        dcam_task.cancel()
+        # dcam_task.cancel()
         motor_control.close()
-        dcam_controller.close()
+        # dcam_controller.close()
         try:
             await motor_task
         except asyncio.CancelledError:
