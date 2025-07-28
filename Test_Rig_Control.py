@@ -24,6 +24,9 @@ ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
 ser_motor_port = '/dev/ttyACM1'  # Adjust this to your motor control serial port
 use_serial = False  # Set to True if you want to use serial communication
 
+os.system('sudo ip link set can1 type can bitrate 500000')
+os.system('sudo ifconfig can1 up')
+
 async def main():
     
     shared_data = SharedData()
@@ -34,13 +37,19 @@ async def main():
     motor_control.set_acceleration(accel_rate=100, max_speed=5000)
     motor_control.invert_control(invert_x=True, invert_y=True, invert_z=False)
 
-    dcam_controller = DCAMController(port=ser_dcam_port, use_serial=use_serial)  # Set to True if you want to use serial communication
-    dcam_controller.set_position_range(min_position=0, max_position=100)  # Set your desired range
-    dcam_controller.set_dcam_open_state(False)  # Initialize the camera state
+    dcam_controller = DCAMController(use_can=True,
+                                     can_config={
+                                         'channel': 'can1',
+                                         'bustype': 'socketcan',
+                                         'arbitration_id': 0x123
+                                     })
+    
+    dcam_controller.set_position_range(min_position=0, max_position=30)  # Set your desired range
+    dcam_controller.set_dcam_open_state(True)  # Initialize the camera state
 
     # Start the motor control handler as a background task
     motor_task = asyncio.create_task(motor_control.handle(shared_data))
-    # dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
+    dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
 
     prev_dcam_button = 0
     last_dcam_toggle = 0
