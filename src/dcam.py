@@ -21,7 +21,7 @@ if not logger.hasHandlers():
 
 class DCAMController:
     def __init__(self,
-                 use_serial=True,
+                 use_serial=False,
                  use_can=False,
                  serial_config=None,
                  can_config=None):

@@ -31,7 +31,7 @@ async def main():
     
     shared_data = SharedData()
     controller = ControllerInput()
-    motor_control = MotorControl(port=ser_motor_port, use_serial=True)  # Set to True if you want to use serial communication
+    motor_control = MotorControl(port=ser_motor_port, use_serial=False)  # Set to True if you want to use serial communication
     motor_control.set_sensitivity(x_sensitivity=1, y_sensitivity=0.5, z_sensitivity=0.3)
     motor_control.set_deadzone(deadzone=0.1)
     motor_control.set_acceleration(accel_rate=100, max_speed=5000)
@@ -85,9 +85,9 @@ async def main():
     finally:
         controller.close()
         motor_task.cancel()
-        # dcam_task.cancel()
+        dcam_task.cancel()
         motor_control.close()
-        # dcam_controller.close()
+        dcam_controller.close()
         try:
             await motor_task
         except asyncio.CancelledError:
