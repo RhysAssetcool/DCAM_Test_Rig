@@ -1,16 +1,14 @@
-import asyncio
+#!/usr/bin/env python3
 
+import asyncio
 from src.utils import SharedData
 from src.motor_contol import MotorControl
 from src.dcam import DCAMController
 from src.net import Net
-import time
 import os
 
-
-ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
-ser_motor_port = '/dev/ttyACM1'  # Adjust this to your motor control serial port
-use_serial = False  # Set to True if you want to use serial communication
+ser_motor_port = '/dev/ttyACM0'  # Adjust this to your motor control serial port
+use_serial = True  # Set to True if you want to use serial communication
 HOST, PORT = "0.0.0.0", 5000
 
 os.system('sudo ip link set can1 type can bitrate 500000')
@@ -33,19 +31,19 @@ async def main():
     motor_control.invert_control(invert_x=True, invert_y=True, invert_z=False)
 
 
-    # dcam_controller = DCAMController(use_can=True,
-    #                                  can_config={
-    #                                      'channel': 'can1',
-    #                                      'bustype': 'socketcan',
-    #                                      'arbitration_id': 0x123
-    #                                  })
+    dcam_controller = DCAMController(use_can=True,
+                                     can_config={
+                                         'channel': 'can1',
+                                         'bustype': 'socketcan',
+                                         'arbitration_id': 0x123
+                                     })
     
-    # dcam_controller.set_position_range(min_position=0, max_position=30)  # Set your desired range
-    # dcam_controller.set_dcam_open_state(True)  # Initialize the camera state
+    dcam_controller.set_position_range(min_position=0, max_position=30)  # Set your desired range
+    dcam_controller.set_dcam_open_state(True)  # Initialize the state
 
     # Start the motor control handler as a background task
     motor_task = asyncio.create_task(motor_control.handle(shared_data))
-    # dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
+    dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
 
     try:
         while True:
@@ -61,10 +59,6 @@ async def main():
 
                 print(f"[SERVER] Received: {shared_data.to_dict()}")
 
-                # Process DCAM control
-                # if shared_data.dcam_open_toggle:
-                #     dcam_controller.toggle_dcam_open()
-
             await asyncio.sleep(0.05)
     except KeyboardInterrupt:
         print("\n[SERVER] Stopping.")
@@ -72,7 +66,7 @@ async def main():
         conn.close()
         server.close()
         motor_control.close()
-        # dcam_controller.close()
+        dcam_controller.close()
 
 
 if __name__ == "__main__":

@@ -87,8 +87,8 @@ class MotorControl:
                 self.ser.write(command.encode('utf-8'))
 
                 #print(f"Sent command: {command.strip()}")
-                print(f"Received response: {self.ser.readline().decode('utf-8').strip()}")
-            print(f"X: {self.x_speed}, Y: {self.y_speed}, Z: {self.z_speed}")
+                #print(f"Received response: {self.ser.readline().decode('utf-8').strip()}")
+            #print(f"X: {self.x_speed}, Y: {self.y_speed}, Z: {self.z_speed}")
             await asyncio.sleep(0.002)
 
     def close(self):
