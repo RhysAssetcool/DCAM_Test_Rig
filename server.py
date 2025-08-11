@@ -18,13 +18,14 @@ os.system('sudo ifconfig can1 up')
 
 async def main():
 
+    shared_data = SharedData()
+
     server = Net()
     server.bind_and_listen(HOST, PORT)
     print(f"[SERVER] Listening on {HOST}:{PORT}")
 
     conn, addr = server.accept()
     print(f"[SERVER] Client connected: {addr}")
-    shared_data = SharedData()
     motor_control = MotorControl(port=ser_motor_port, use_serial=False)  # Set to True if you want to use serial communication
     motor_control.set_sensitivity(x_sensitivity=1, y_sensitivity=0.5, z_sensitivity=0.3)
     motor_control.set_deadzone(deadzone=0.1)
@@ -51,7 +52,7 @@ async def main():
             data = conn.recv_json()
             if data:
                 # Update shared data from received JSON
-                shared_data.from_dict(data)
+                shared_data.update_from_dict(data)
 
                 # Process motor control
                 motor_control.x_speed = shared_data.x_axe

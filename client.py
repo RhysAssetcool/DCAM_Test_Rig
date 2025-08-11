@@ -4,7 +4,7 @@ from src.utils import SharedData
 import asyncio
 from src.input import ControllerInput
 
-HOST, PORT = "127.0.0.1", 5000  # change HOST to your server IP
+HOST, PORT = "192.168.107.160", 5000  # change HOST to your server IP
 SEND_INTERVAL = 0.05            # ~20 Hz
 DEBOUNCE = 0.30                 # seconds for toggle button
 
