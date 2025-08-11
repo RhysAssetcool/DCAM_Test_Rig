@@ -5,4 +5,9 @@ class SharedData:
         self.z_axe = 0
         self.dcam_open_toggle = 0
 
-        
+    def to_dict(self):
+        return self.__dict__
+
+    @staticmethod
+    def from_dict(d):
+        return SharedData(**d)
