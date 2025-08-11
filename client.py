@@ -36,13 +36,16 @@ async def main():
                 # Debounce for DCAM open toggle button
                 current_dcam_button = buttons[0] if len(buttons) > 0 else 0
                 now = time.time()
+
                 # Toggle DCAM open state with debounce
                 if current_dcam_button and not prev_dcam_button and (now - last_dcam_toggle) > DEBOUNCE:
-                    sd.dcam_open_toggle = True
+                    sd.dcam_open_toggle = current_dcam_button
                     last_dcam_toggle = now
-          
-    
+                else:
+                    sd.dcam_open_toggle = 0
                 prev_dcam_button = current_dcam_button
+
+                print(prev_dcam_button, current_dcam_button, sd.dcam_open_toggle)
                 net.send_json(sd.to_dict())
 
             await asyncio.sleep(SEND_INTERVAL)
@@ -52,5 +55,6 @@ async def main():
         print("\n[CLIENT] Stopping.")
     finally:
         net.close()
+        controller.close()
 if __name__ == "__main__":
     asyncio.run(main())
