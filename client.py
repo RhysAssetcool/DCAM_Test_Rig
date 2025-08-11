@@ -1,8 +1,8 @@
 import time
-from net import Net
-from utils import SharedData
+from src.net import Net
+from src.utils import SharedData
 import asyncio
-from input import ControllerInput
+from src.input import ControllerInput
 
 HOST, PORT = "127.0.0.1", 5000  # change HOST to your server IP
 SEND_INTERVAL = 0.05            # ~20 Hz

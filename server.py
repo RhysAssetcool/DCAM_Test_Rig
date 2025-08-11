@@ -1,9 +1,9 @@
 import asyncio
-from input import ControllerInput
-from utils import SharedData
-from motor_contol import MotorControl
-from dcam import DCAMController
-from net import Net
+
+from src.utils import SharedData
+from src.motor_contol import MotorControl
+from src.dcam import DCAMController
+from src.net import Net
 import time
 import os
 
