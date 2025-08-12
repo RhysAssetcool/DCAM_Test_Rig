@@ -67,7 +67,7 @@ This program provides a command-line interface to control a test rig using a joy
 	## Setup
 	1. **SSH into the test rig:**
 		```sh
-		ssh <username>@<test_rig_ip>
+		ssh user@kamino
 		```
 	2. **Navigate to the program directory:**
 		```sh
