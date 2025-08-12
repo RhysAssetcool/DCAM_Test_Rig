@@ -11,6 +11,8 @@
 # X, Y
 
 
+
+import argparse
 import asyncio
 from src.input import ControllerInput
 from src.utils import SharedData
@@ -20,40 +22,54 @@ import time
 import os
 import can 
 
-ser_dcam_port = '/dev/ttyACM0'  # Adjust this to your camera serial port
-ser_motor_port = '/dev/ttyACM1'  # Adjust this to your motor control serial port
-use_serial = False  # Set to True if you want to use serial communication
 
-os.system('sudo ip link set can1 type can bitrate 500000')
-os.system('sudo ifconfig can1 up')
+def parse_args():
+    parser = argparse.ArgumentParser(description="Test Rig Control Script")
+    parser.add_argument('--phase', type=str, default='default', help='Phase argument for the test rig (default: %(default)s)')
+    parser.add_argument('--motor-port', type=str, default='/dev/ttyACM0', help='Serial port for motor control (default: %(default)s)')
+    parser.add_argument('--dcam-can-channel', type=str, default='can1', help='CAN channel for DCAM control (default: %(default)s)')
+    parser.add_argument('--dcam-can-bustype', type=str, default='socketcan', help='CAN bus type for DCAM control (default: %(default)s)')
+    parser.add_argument('--dcam-arbitration-id', type=int, default=0x123, help='CAN arbitration ID for DCAM control (default: %(default)s)')
+    parser.add_argument('--x-axis-sensitivity', type=float, default=1.0, help='X-axis sensitivity for motor control (default: %(default)s)')
+    parser.add_argument('--y-axis-sensitivity', type=float, default=0.5, help='Y-axis sensitivity for motor control (default: %(default)s)')
+    parser.add_argument('--z-axis-sensitivity', type=float, default=0.3, help='Z-axis sensitivity for motor control (default: %(default)s)')
+    parser.add_argument('--acceleration', type=float, default=100, help='Acceleration for motor control (default: %(default)s)')
+    parser.add_argument('--max-speed', type=float, default=5000, help='Max speed for motor control (default: %(default)s)')
+    return parser.parse_args()
 
-async def main():
-    
+
+async def main(args):
+
+    os.system(f"sudo ip link set {args.dcam_can_channel} type can bitrate 500000")
+    os.system(f"sudo ifconfig {args.dcam_can_channel} up")
+
     shared_data = SharedData()
     controller = ControllerInput()
-    motor_control = MotorControl(port=ser_motor_port, use_serial=False)  # Set to True if you want to use serial communication
-    motor_control.set_sensitivity(x_sensitivity=1, y_sensitivity=0.5, z_sensitivity=0.3)
+    motor_control = MotorControl(port=args.motor_port)
+    motor_control.set_sensitivity(x_sensitivity=args.x_axis_sensitivity, 
+                                  y_sensitivity=args.y_axis_sensitivity, 
+                                  z_sensitivity=args.z_axis_sensitivity)
+    
     motor_control.set_deadzone(deadzone=0.1)
-    motor_control.set_acceleration(accel_rate=100, max_speed=5000)
-    motor_control.invert_control(invert_x=True, invert_y=True, invert_z=False)
+    motor_control.set_acceleration(accel_rate=args.acceleration, 
+                                   max_speed=args.max_speed)
+    motor_control.invert_control(invert_x=True, invert_y=True, invert_z=True)
 
     dcam_controller = DCAMController(use_can=True,
                                      can_config={
-                                         'channel': 'can1',
-                                         'bustype': 'socketcan',
-                                         'arbitration_id': 0x123
+                                         'channel': args.dcam_can_channel,
+                                         'bustype': args.dcam_can_bustype,
+                                         'arbitration_id': args.dcam_arbitration_id
                                      })
-    
-    dcam_controller.set_position_range(min_position=0, max_position=30)  # Set your desired range
-    dcam_controller.set_dcam_open_state(True)  # Initialize the camera state
+    dcam_controller.set_position_range(min_position=0, max_position=30)
+    dcam_controller.set_dcam_open_state(True)
 
-    # Start the motor control handler as a background task
     motor_task = asyncio.create_task(motor_control.handle(shared_data))
     dcam_task = asyncio.create_task(dcam_controller.handle(shared_data))
 
     prev_dcam_button = 0
     last_dcam_toggle = 0
-    debounce_interval = 0.3  # seconds
+    debounce_interval = 0.3
 
     try:
         while True:
@@ -63,19 +79,16 @@ async def main():
                 buttons = state['buttons']
                 hats = state['hats']
 
-                # Update shared data based on joystick input
                 shared_data.x_axe = axes[0] if len(axes) > 0 else 0
-                shared_data.y_axe = axes[1] if len(axes) > 1 else 0
-                shared_data.z_axe = axes[3] if len(axes) > 3 else 0
+                #shared_data.y_axe = axes[1] if len(axes) > 1 else 0
+                shared_data.y_axe = axes[4] if len(axes) > 4 else 0
+                _, shared_data.z_axe = hats[0] if len(hats) > 0 else (0, 0)
 
-                # Debounce for DCAM open toggle button
                 current_dcam_button = buttons[0] if len(buttons) > 0 else 0
                 now = time.time()
                 if current_dcam_button and not prev_dcam_button and (now - last_dcam_toggle) > debounce_interval:
                     shared_data.dcam_open_toggle = True
                     last_dcam_toggle = now
-          
-    
                 prev_dcam_button = current_dcam_button
             await asyncio.sleep(0.05)
 
@@ -95,7 +108,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-# This script initializes the controller input and motor control, polls the joystick for input,
-# updates the shared data, and handles motor control in a loop.
-# It also handles graceful shutdown on keyboard interrupt.
+    
+    args = parse_args()
+    asyncio.run(main(args))
+
